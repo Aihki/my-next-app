@@ -1,10 +1,10 @@
 type UserLevel = {
-  level_id: string;
+  level_id: number;
   level_name: "Admin" | "User" | "Guest";
 };
 
 type User = {
-  user_id: string;
+  user_id: number;
   username: string;
   password: string;
   email: string;
@@ -13,8 +13,8 @@ type User = {
 };
 
 type MediaItem = {
-  book_id: string;
-  user_id: string;
+  book_id: number;
+  user_id: number;
   filename: string;
   book_genre: string;
   series_name: string;
@@ -27,55 +27,55 @@ type MediaItem = {
 };
 
 type Comment = {
-  comment_id: string;
-  book_id: string;
-  user_id: string;
+  comment_id: number;
+  book_id: number;
+  user_id: number;
   comment_text: string;
   created_at: Date;
 };
 
 type Like = {
-  like_id: string;
-  book_id: string;
-  user_id: string;
+  like_id: number;
+  book_id: number;
+  user_id: number;
   created_at: Date;
 };
 
 type Rating = {
-  rating_id: string;
-  book_id: string;
-  user_id: string;
+  rating_id: number;
+  book_id: number;
+  user_id: number;
   rating_value: number;
   created_at: Date;
 };
 
 type Review = {
-  review_id: string;
-  book_id: string;
-  user_id: string;
+  review_id: number;
+  book_id: number;
+  user_id: number;
   review_text: string;
   created_at: Date;
 };
 
 type Tag = {
-  tag_id: string;
+  tag_id: number;
   tag_name: string;
 };
 
 type MediaItemTag = {
-  book_id: string;
-  tag_id: string;
+  book_id: number;
+  tag_id: number;
 };
 
 type ReadingStatus = {
-  status_id: string;
+  status_id: number;
   status_name: string;
 };
 
 type BookStatus = {
-  book_id: string;
-  status_id: string;
-  user_id: string;
+  book_id: number;
+  status_id: number;
+  user_id: number;
 };
 
 type StatusColors = {
@@ -121,16 +121,16 @@ type UserWithNoPassword = Omit<UserWithLevel, "password">;
 
 type TokenContent = Pick<User, "user_id"> & Pick<UserLevel, "level_name">;
 
-//type MediaItemWithOwner = MediaItem & Pick<User, "username">;
+type MediaItemWithOwner = MediaItem & Pick<User, "username">;
 
-type MediaItemWithOwner = MediaItem & {
-  owner: User;
-  likes?: Like[];
-  rating?: Rating;
-  review?: Review;
-  likes_count: number;
-  status: ReadingStatus;
-};
+// type MediaItemWithOwner = MediaItem & {
+//   owner: User;
+//   likes?: Like[];
+//   rating?: Rating;
+//   review?: Review;
+//   likes_count: number;
+//   status: ReadingStatus;
+// };
 
 
 // for upload server

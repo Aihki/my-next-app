@@ -93,7 +93,7 @@ const fetchMediaById = async (id: number): Promise<MediaItem | null> => {
  * @throws {Error} - error if database query fails
  */
 const postMedia = async (
-  media: Omit<MediaItem, 'book_id' | 'created_at'>
+  media: Omit<MediaItem, 'book_id' | 'created_at' |'thumbnail'>
 ): Promise<MediaItem | null> => {
   const {
     user_id,

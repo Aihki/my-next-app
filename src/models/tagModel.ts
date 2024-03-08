@@ -1,8 +1,9 @@
 import {ResultSetHeader, RowDataPacket} from 'mysql2';
-import {TagResult} from '@sharedTypes/DBTypes';
-import promisePool from '../../lib/db';
-import {fetchData} from '../../lib/functions';
-import {MessageResponse} from '@sharedTypes/MessageTypes';
+import {TagResult} from '@/types/DBTypes';
+import promisePool from '@/lib/db';
+import {fetchData} from '@/lib/functions';
+import {MessageResponse} from '@/types/MessageTypes';
+import { Tag } from '@/types/DBTypes';
 
 // Request a list of tags
 const fetchAllTags = async (): Promise<TagResult[] | null> => {
@@ -24,37 +25,43 @@ const fetchAllTags = async (): Promise<TagResult[] | null> => {
 
 // Post a new tag
 const postTag = async (
-  tag: Omit<TagResult, 'tag_id'>
+  tag_name: string,
+  media_id: number,
 ): Promise<MessageResponse | null> => {
-  const connection = await promisePool.getConnection();
   try {
-    await connection.beginTransaction();
-    const [tagResult] = await connection.execute<ResultSetHeader>(
-      'INSERT INTO Tags (tag_name) VALUES (?)',
-      [tag.tag_name]
+    let tag_id = 0;
+    // check if tag exists (case insensitive)
+    const [tagResult] = await promisePool.query<RowDataPacket[] & Tag[]>(
+      'SELECT tag_id FROM Tags WHERE tag_name = ?',
+      [tag_name],
     );
-    if (tagResult.affectedRows === 0) {
+    if (tagResult.length === 0) {
+      // if tag does not exist create it
+      const [insertResult] = await promisePool.execute<ResultSetHeader>(
+        'INSERT INTO Tags (tag_name) VALUES (?)',
+        [tag_name],
+      );
+      if (insertResult.affectedRows === 0) {
+        return null;
+      }
+      // get tag_id from created tag
+      tag_id = insertResult.insertId;
+    } else {
+      // if tag exists get tag_id from the first result
+      tag_id = tagResult[0].tag_id;
+    }
+    const [MediaItemTagsResult] = await promisePool.execute<ResultSetHeader>(
+      'INSERT INTO MediaItemTags (tag_id, media_id) VALUES (?, ?)',
+      [tag_id, media_id],
+    );
+    if (MediaItemTagsResult.affectedRows === 0) {
       return null;
     }
 
-    const [mediaItemTagResult] = await connection.execute<ResultSetHeader>(
-      'INSERT INTO MediaItemTags (book_id, tag_id) VALUES (?, ?)',
-      [tag.book_id, tagResult.insertId]
-    );
-
-    await connection.commit();
-
-    if (mediaItemTagResult.affectedRows === 0) {
-      return null;
-    }
-
-    return {message: 'Tag created'};
+    return { message: 'Tag added' };
   } catch (e) {
-    await connection.rollback();
-    console.error('postTag error', (e as Error).message);
+    console.error('postTagToMedia error', (e as Error).message);
     throw new Error((e as Error).message);
-  } finally {
-    connection.release();
   }
 };
 
